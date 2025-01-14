@@ -46,49 +46,31 @@ def process_image(image, model):
     DO[mask == 0] = np.nan
     average_DO = np.nanmean(DO)
 
-    # --- Hardness Calculation ---
-    hardness = red_band.astype(float) * 0.05
-    hardness[mask == 0] = np.nan
-    average_hardness = np.nanmean(hardness)
-
-    # --- Turbidity Calculation ---
-    value_channel = hsv_image[:, :, 2]
-    turbidity = np.std(value_channel[mask != 0])
-
-    # --- Organic Carbon Calculation ---
-    organic_carbon = green_band.astype(float) * 0.03
-    organic_carbon[mask == 0] = np.nan
-    average_organic_carbon = np.nanmean(organic_carbon)
-
     # Prepare the data for model prediction
     input_data = pd.DataFrame({
         'pH': [average_pH],
-        'Hardness': [average_hardness],
-        'Organic_carbon': [average_organic_carbon],
-        'Turbidity': [turbidity]
+        'FUI': [average_fui],
+        'DO': [average_DO]
     })
 
     # Predict potability
     potability_prediction = model.predict(input_data.to_numpy())
 
-    return average_pH, average_hue, average_fui, average_DO, average_hardness, turbidity, average_organic_carbon, potability_prediction[0]
+    return average_pH, average_hue, average_fui, average_DO, potability_prediction[0]
 
 # Function to assess water quality
-def assess_water_quality(pH, hue, FUI, DO, hardness, turbidity, organic_carbon, potability):
-    drinking_water = (6.5 <= pH <= 8.5 and DO >= 7 and turbidity <= 3)
+def assess_water_quality(pH, hue, FUI, DO, potability):
+    drinking_water = (6.5 <= pH <= 8.5 and DO >= 7)
     irrigation_water = (6.0 <= pH <= 8.5)
-    bathing_water = (6.5 <= pH <= 8.5 and DO >= 5 and turbidity <= 3)
+    bathing_water = (6.5 <= pH <= 8.5 and DO >= 5)
     wildlife_support = (6.5 <= pH <= 8.5 and DO >= 4)
-    post_treatment_for_drinking = (6.5 <= pH <= 8.5 and DO >= 7 and turbidity == 0)
+    post_treatment_for_drinking = (6.5 <= pH <= 8.5 and DO >= 7)
 
     return {
         "pH": round(pH, 2),
         "Hue": round(hue, 2),
         "FUI": round(FUI, 2),
         "DO": round(DO, 2),
-        "Hardness": round(hardness, 2),
-        "Turbidity": round(turbidity, 2),
-        "Organic Carbon": round(organic_carbon, 2),
         "Potability Prediction": "Safe" if potability == 1 else "Not Safe",
         "Drinking Status": "Safe for Drinking" if drinking_water else "Not Safe for Drinking",
         "Irrigation Status": "Safe for Irrigation" if irrigation_water else "Not Safe for Irrigation",
@@ -105,7 +87,12 @@ def main():
     def set_page(page_name):
         st.session_state.page = page_name
 
+    st.sidebar.title("Navigation")
     if st.session_state.page == "user_info":
+        st.sidebar.button("User Info", disabled=True)
+        st.sidebar.button("Upload Image", on_click=lambda: set_page("upload_image"))
+        st.sidebar.button("Results", on_click=lambda: set_page("results"))
+
         st.title("User Information")
         name = st.text_input("Name")
         age = st.number_input("Age", min_value=0, step=1)
@@ -115,6 +102,10 @@ def main():
             set_page("upload_image")
 
     elif st.session_state.page == "upload_image":
+        st.sidebar.button("User Info", on_click=lambda: set_page("user_info"))
+        st.sidebar.button("Upload Image", disabled=True)
+        st.sidebar.button("Results", on_click=lambda: set_page("results"))
+
         st.title("Upload Image for Analysis")
         uploaded_image = st.file_uploader("Upload Image", type=["png", "jpg", "jpeg"])
         if uploaded_image and st.button("Analyze"):
@@ -122,6 +113,10 @@ def main():
             set_page("results")
 
     elif st.session_state.page == "results":
+        st.sidebar.button("User Info", on_click=lambda: set_page("user_info"))
+        st.sidebar.button("Upload Image", on_click=lambda: set_page("upload_image"))
+        st.sidebar.button("Results", disabled=True)
+
         st.title("Water Quality Analysis Results")
         if "user_info" in st.session_state:
             user_info = st.session_state.user_info
@@ -133,8 +128,8 @@ def main():
             image = cv2.imdecode(image, cv2.IMREAD_COLOR)
 
             model = load_model_from_file('model.pkl')
-            average_pH, average_hue, average_fui, average_DO, average_hardness, turbidity, average_organic_carbon, potability_prediction = process_image(image, model)
-            assessment = assess_water_quality(average_pH, average_hue, average_fui, average_DO, average_hardness, turbidity, average_organic_carbon, potability_prediction)
+            average_pH, average_hue, average_fui, average_DO, potability_prediction = process_image(image, model)
+            assessment = assess_water_quality(average_pH, average_hue, average_fui, average_DO, potability_prediction)
 
             st.subheader("Results")
             for key, value in assessment.items():
