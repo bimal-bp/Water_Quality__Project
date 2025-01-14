@@ -6,10 +6,9 @@ import pandas as pd
 import requests
 from io import BytesIO
 
-# Function to load model from a URL
-def load_model_from_url(url):
-    response = requests.get(url)
-    model = joblib.load(BytesIO(response.content))
+# Function to load the model from a local file
+def load_model_from_file(file_path):
+    model = joblib.load(file_path)
     return model
 
 # Function to process the image
@@ -121,12 +120,9 @@ st.write("Upload the image for water quality analysis.")
 # File uploader for image
 uploaded_image = st.file_uploader("Upload Image", type=["png", "jpg", "jpeg"])
 
-# URL for the model stored in GitHub (replace with your actual URL)
-model_url = "https://github.com/bimal-bp/Water_Quality__Project/blob/main/model.pkl"
-
 if uploaded_image:
-    # Load the model from GitHub
-    model = load_model_from_url(model_url)
+    # Load the model from the local file
+    model = load_model_from_file('model.pkl')
     
     # Read the image from the uploaded file
     image = np.asarray(bytearray(uploaded_image.read()), dtype=np.uint8)
