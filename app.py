@@ -122,7 +122,7 @@ st.write("Upload the image for water quality analysis.")
 uploaded_image = st.file_uploader("Upload Image", type=["png", "jpg", "jpeg"])
 
 # URL for the model stored in GitHub (replace with your actual URL)
-model_url = "https://raw.githubusercontent.com/your-username/your-repository/main/model.pkl"
+model_url = "https://github.com/bimal-bp/Water_Quality__Project/blob/main/model.pkl"
 
 if uploaded_image:
     # Load the model from GitHub
