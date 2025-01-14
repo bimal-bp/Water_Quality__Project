@@ -6,8 +6,7 @@ import pandas as pd
 
 # Function to load the model from a local file
 def load_model_from_file(file_path):
-    model = joblib.load(file_path)
-    return model
+    return joblib.load(file_path)
 
 # Function to process the image
 def process_image(image, model):
@@ -90,12 +89,12 @@ def assess_water_quality(pH, hue, FUI, DO, hardness, turbidity, organic_carbon, 
         "Hardness": round(hardness, 2),
         "Turbidity": round(turbidity, 2),
         "Organic Carbon": round(organic_carbon, 2),
-        "Potability Prediction": "Safe" if potability == 1 else "Not Safe",
-        "Drinking Status": "Safe for Drinking" if drinking_water else "Not Safe for Drinking",
-        "Irrigation Status": "Safe for Irrigation" if irrigation_water else "Not Safe for Irrigation",
-        "Bathing Status": "Safe for Bathing" if bathing_water else "Not Safe for Bathing",
-        "Wildlife Support": "Supports Wildlife" if wildlife_support else "Does not Support Wildlife",
-        "Post Treatment Drinking Status": "Safe for Drinking after Treatment" if post_treatment_for_drinking else "Needs Treatment for Drinking"
+        "Potability Prediction": "✅ Safe" if potability == 1 else "❌ Not Safe",
+        "Drinking Status": "✅ Safe for Drinking" if drinking_water else "❌ Not Safe for Drinking",
+        "Irrigation Status": "✅ Safe for Irrigation" if irrigation_water else "❌ Not Safe for Irrigation",
+        "Bathing Status": "✅ Safe for Bathing" if bathing_water else "❌ Not Safe for Bathing",
+        "Wildlife Support": "✅ Supports Wildlife" if wildlife_support else "❌ Does not Support Wildlife",
+        "Post Treatment Drinking Status": "✅ Safe for Drinking after Treatment" if post_treatment_for_drinking else "❌ Needs Treatment for Drinking"
     }
 
 # Streamlit interface
@@ -147,17 +146,16 @@ elif page == "Results":
         assessment = assess_water_quality(average_pH, average_hue, average_fui, average_DO, average_hardness, turbidity, average_organic_carbon, potability_prediction)
 
         st.subheader("Water Quality Assessment Results")
-        st.write(f"Name: {st.session_state['user_info']['Name']}")
-        st.write(f"Age: {st.session_state['user_info']['Age']}")
-        st.write(f"Gender: {st.session_state['user_info']['Gender']}")
-        st.write(f"pH: {assessment['pH']}")
-        st.write(f"Hue: {assessment['Hue']:.2f}")
-        st.write(f"FUI: {assessment['FUI']:.2f}")
-        st.write(f"DO: {assessment['DO']}")
-
-        st.write(f"Potability Prediction: {assessment['Potability Prediction']}")
-        st.write(f"Drinking Status: {assessment['Drinking Status']}")
-        st.write(f"Irrigation Status: {assessment['Irrigation Status']}")
-        st.write(f"Bathing Status: {assessment['Bathing Status']}")
-        st.write(f"Wildlife Support: {assessment['Wildlife Support']}")
-        st.write(f"Post Treatment Drinking Status: {assessment['Post Treatment Drinking Status']}")
+        st.markdown(f"**Name**: {st.session_state['user_info']['Name']}")
+        st.markdown(f"**Age**: {st.session_state['user_info']['Age']}")
+        st.markdown(f"**Gender**: {st.session_state['user_info']['Gender']}")
+        st.markdown(f"**pH**: {assessment['pH']}")
+        st.markdown(f"**Hue**: {assessment['Hue']}")
+        st.markdown(f"**FUI**: {assessment['FUI']}")
+        st.markdown(f"**DO**: {assessment['DO']}")
+        st.markdown(f"**Potability Prediction**: {assessment['Potability Prediction']}")
+        st.markdown(f"**Drinking Status**: {assessment['Drinking Status']}")
+        st.markdown(f"**Irrigation Status**: {assessment['Irrigation Status']}")
+        st.markdown(f"**Bathing Status**: {assessment['Bathing Status']}")
+        st.markdown(f"**Wildlife Support**: {assessment['Wildlife Support']}")
+        st.markdown(f"**Post Treatment Drinking Status**: {assessment['Post Treatment Drinking Status']}")
