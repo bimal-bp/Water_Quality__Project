@@ -6,8 +6,7 @@ import pandas as pd
 
 # Function to load the model from a local file
 def load_model_from_file(file_path):
-    model = joblib.load(file_path)
-    return model
+    return joblib.load(file_path)
 
 # Function to process the image
 def process_image(image, model):
@@ -21,7 +20,7 @@ def process_image(image, model):
     mask = cv2.inRange(hsv_image, lower_purple, upper_purple)
 
     # --- pH Calculation ---
-    blue_band = image_rgb[:, :, 2]
+    blue_band = image_rgb[:, :, 2]  # Blue channel
     nir_band = np.ones_like(blue_band) * 100
     nir_band = np.clip(nir_band, 1, None)
     ratio = blue_band.astype(float) / nir_band
@@ -43,8 +42,7 @@ def process_image(image, model):
     # --- Dissolved Oxygen (DO) Calculation ---
     red_band = image_rgb[:, :, 0]
     do_ratio = blue_band.astype(float) / (red_band + 1e-5)
-    a, b = 2.0, 5.0
-    DO = a * do_ratio + b
+    DO = 2.0 * do_ratio + 5.0
     DO[mask == 0] = np.nan
     average_DO = np.nanmean(DO)
 
@@ -70,8 +68,8 @@ def process_image(image, model):
         'Turbidity': [turbidity]
     })
 
-    input_data_np = input_data.to_numpy()
-    potability_prediction = model.predict(input_data_np)
+    # Predict potability
+    potability_prediction = model.predict(input_data.to_numpy())
 
     return average_pH, average_hue, average_fui, average_DO, average_hardness, turbidity, average_organic_carbon, potability_prediction[0]
 
@@ -83,12 +81,6 @@ def assess_water_quality(pH, hue, FUI, DO, hardness, turbidity, organic_carbon, 
     wildlife_support = (6.5 <= pH <= 8.5 and DO >= 4)
     post_treatment_for_drinking = (6.5 <= pH <= 8.5 and DO >= 7 and turbidity == 0)
 
-    drinking_status = "Safe for Drinking" if drinking_water else "Not Safe for Drinking"
-    irrigation_status = "Safe for Irrigation" if irrigation_water else "Not Safe for Irrigation"
-    bathing_status = "Safe for Bathing" if bathing_water else "Not Safe for Bathing"
-    wildlife_status = "Supports Wildlife" if wildlife_support else "Does not Support Wildlife"
-    post_treatment_status = "Safe for Drinking after Treatment" if post_treatment_for_drinking else "Needs Treatment for Drinking"
-
     return {
         "pH": round(pH, 2),
         "Hue": round(hue, 2),
@@ -98,61 +90,55 @@ def assess_water_quality(pH, hue, FUI, DO, hardness, turbidity, organic_carbon, 
         "Turbidity": round(turbidity, 2),
         "Organic Carbon": round(organic_carbon, 2),
         "Potability Prediction": "Safe" if potability == 1 else "Not Safe",
-        "Drinking Status": drinking_status,
-        "Irrigation Status": irrigation_status,
-        "Bathing Status": bathing_status,
-        "Wildlife Support": wildlife_status,
-        "Post Treatment Drinking Status": post_treatment_status
+        "Drinking Status": "Safe for Drinking" if drinking_water else "Not Safe for Drinking",
+        "Irrigation Status": "Safe for Irrigation" if irrigation_water else "Not Safe for Irrigation",
+        "Bathing Status": "Safe for Bathing" if bathing_water else "Not Safe for Bathing",
+        "Wildlife Support": "Supports Wildlife" if wildlife_support else "Does not Support Wildlife",
+        "Post Treatment Drinking Status": "Safe for Drinking after Treatment" if post_treatment_for_drinking else "Needs Treatment for Drinking"
     }
 
-# Streamlit interface
-st.title("Water Quality Assessment Application")
+# Streamlit App
+def main():
+    if "page" not in st.session_state:
+        st.session_state.page = "user_info"
 
-# Page navigation
-page = st.sidebar.radio("Navigate", ["User Info", "Image Input", "Results"])
+    def set_page(page_name):
+        st.session_state.page = page_name
 
-if page == "User Info":
-    st.header("Step 1: Enter User Information")
-    name = st.text_input("Name")
-    age = st.number_input("Age", min_value=1, max_value=120, step=1)
-    gender = st.selectbox("Gender", ["Male", "Female", "Other"])
-    if st.button("Proceed to Step 2"):
-        st.session_state["user_info"] = {"Name": name, "Age": age, "Gender": gender}
-        st.experimental_rerun()
+    if st.session_state.page == "user_info":
+        st.title("User Information")
+        name = st.text_input("Name")
+        age = st.number_input("Age", min_value=0, step=1)
+        gender = st.selectbox("Gender", ["Male", "Female", "Other"])
+        if st.button("Next"):
+            st.session_state.user_info = {"name": name, "age": age, "gender": gender}
+            set_page("upload_image")
 
-elif page == "Image Input":
-    st.header("Step 2: Upload Image for Analysis")
-    if "user_info" not in st.session_state:
-        st.warning("Please complete Step 1 first.")
-    else:
+    elif st.session_state.page == "upload_image":
+        st.title("Upload Image for Analysis")
         uploaded_image = st.file_uploader("Upload Image", type=["png", "jpg", "jpeg"])
-        if st.button("Analyze") and uploaded_image:
-            model = load_model_from_file('model.pkl')
-            image = np.asarray(bytearray(uploaded_image.read()), dtype=np.uint8)
+        if uploaded_image and st.button("Analyze"):
+            st.session_state.image = uploaded_image
+            set_page("results")
+
+    elif st.session_state.page == "results":
+        st.title("Water Quality Analysis Results")
+        if "user_info" in st.session_state:
+            user_info = st.session_state.user_info
+            st.write(f"Name: {user_info['name']}")
+            st.write(f"Age: {user_info['age']}")
+            st.write(f"Gender: {user_info['gender']}")
+        if "image" in st.session_state:
+            image = np.asarray(bytearray(st.session_state.image.read()), dtype=np.uint8)
             image = cv2.imdecode(image, cv2.IMREAD_COLOR)
-            results = process_image(image, model)
-            st.session_state["results"] = results
-            st.experimental_rerun()
 
-elif page == "Results":
-    st.header("Step 3: Results")
-    if "results" not in st.session_state:
-        st.warning("Please complete Steps 1 and 2 first.")
-    else:
-        (average_pH, average_hue, average_fui, average_DO, average_hardness, turbidity, average_organic_carbon, potability_prediction) = st.session_state["results"]
-        assessment = assess_water_quality(average_pH, average_hue, average_fui, average_DO, average_hardness, turbidity, average_organic_carbon, potability_prediction)
+            model = load_model_from_file('model.pkl')
+            average_pH, average_hue, average_fui, average_DO, average_hardness, turbidity, average_organic_carbon, potability_prediction = process_image(image, model)
+            assessment = assess_water_quality(average_pH, average_hue, average_fui, average_DO, average_hardness, turbidity, average_organic_carbon, potability_prediction)
 
-        st.subheader("Water Quality Assessment Results")
-        st.write(f"Name: {st.session_state['user_info']['Name']}")
-        st.write(f"Age: {st.session_state['user_info']['Age']}")
-        st.write(f"Gender: {st.session_state['user_info']['Gender']}")
-        st.write(f"pH: {assessment['pH']}")
-        st.write(f"DO: {assessment['DO']}")
-        st.write(f"Hue: {assessment['Hue']:.2f}")
-        st.write(f"FUI: {assessment['FUI']:.2f}")
-        st.write(f"Potability Prediction: {assessment['Potability Prediction']}")
-        st.write(f"Drinking Status: {assessment['Drinking Status']}")
-        st.write(f"Irrigation Status: {assessment['Irrigation Status']}")
-        st.write(f"Bathing Status: {assessment['Bathing Status']}")
-        st.write(f"Wildlife Support: {assessment['Wildlife Support']}")
-        st.write(f"Post Treatment Drinking Status: {assessment['Post Treatment Drinking Status']}")
+            st.subheader("Results")
+            for key, value in assessment.items():
+                st.write(f"{key}: {value}")
+
+if __name__ == "__main__":
+    main()
