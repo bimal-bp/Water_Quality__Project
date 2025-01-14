@@ -154,9 +154,7 @@ elif page == "Results":
         st.write(f"Hue: {assessment['Hue']:.2f}")
         st.write(f"FUI: {assessment['FUI']:.2f}")
         st.write(f"DO: {assessment['DO']}")
-        st.write(f"Hardness: {assessment['Hardness']}")
-        st.write(f"Turbidity: {assessment['Turbidity']}")
-        st.write(f"Organic Carbon: {assessment['Organic Carbon']}")
+
         st.write(f"Potability Prediction: {assessment['Potability Prediction']}")
         st.write(f"Drinking Status: {assessment['Drinking Status']}")
         st.write(f"Irrigation Status: {assessment['Irrigation Status']}")
