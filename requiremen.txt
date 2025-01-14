@@ -1,6 +1,6 @@
-opencv-python-headless==4.5.3.56  # OpenCV for image processing
-numpy==1.24.2  # Numerical operations
-pandas==1.5.3  # Data processing and analysis
-joblib==1.3.1  # For saving/loading the model
-streamlit==1.18.1  # Streamlit for web app development
-scikit-learn==1.3.0  # For machine learning tasks (e.g., training and prediction)
+streamlit
+opencv-python
+numpy
+pandas
+scikit-learn
+joblib
