@@ -102,7 +102,17 @@ def assess_water_quality(pH, hue, FUI, DO, hardness, turbidity, organic_carbon, 
 st.title("Water Quality Assessment Application")
 
 # Page navigation
-page = st.sidebar.radio("Navigate", ["User Info", "Image Input", "Results"])
+if "current_page" not in st.session_state:
+    st.session_state.current_page = "User Info"
+
+page = st.session_state.current_page
+
+if st.sidebar.button("Go to User Info"):
+    st.session_state.current_page = "User Info"
+if st.sidebar.button("Go to Image Input"):
+    st.session_state.current_page = "Image Input"
+if st.sidebar.button("Go to Results"):
+    st.session_state.current_page = "Results"
 
 if page == "User Info":
     st.header("Step 1: Enter User Information")
@@ -111,7 +121,7 @@ if page == "User Info":
     gender = st.selectbox("Gender", ["Male", "Female", "Other"])
     if st.button("Proceed to Step 2"):
         st.session_state["user_info"] = {"Name": name, "Age": age, "Gender": gender}
-        st.experimental_rerun()
+        st.session_state.current_page = "Image Input"
 
 elif page == "Image Input":
     st.header("Step 2: Upload Image for Analysis")
@@ -125,7 +135,7 @@ elif page == "Image Input":
             image = cv2.imdecode(image, cv2.IMREAD_COLOR)
             results = process_image(image, model)
             st.session_state["results"] = results
-            st.experimental_rerun()
+            st.session_state.current_page = "Results"
 
 elif page == "Results":
     st.header("Step 3: Results")
