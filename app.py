@@ -1,13 +1,16 @@
 import streamlit as st
 import cv2
 import numpy as np
-import joblib  # Assuming the model is saved as .pkl
+import joblib
 import pandas as pd
+import requests
 from io import BytesIO
 
-# Function to load model
-def load_model(model_path):
-    return joblib.load(model_path)
+# Function to load model from a URL
+def load_model_from_url(url):
+    response = requests.get(url)
+    model = joblib.load(BytesIO(response.content))
+    return model
 
 # Function to process the image
 def process_image(image, model):
@@ -113,15 +116,17 @@ def assess_water_quality(pH, hue, FUI, DO, hardness, turbidity, organic_carbon, 
 
 # Streamlit interface
 st.title("Water Quality Assessment")
-st.write("Upload the required files and the image for water quality analysis.")
+st.write("Upload the image for water quality analysis.")
 
-# File uploader for model.pkl and image
-uploaded_model = st.file_uploader("Upload Model (.pkl)", type="pkl")
+# File uploader for image
 uploaded_image = st.file_uploader("Upload Image", type=["png", "jpg", "jpeg"])
 
-if uploaded_model and uploaded_image:
-    # Load the model from the uploaded file
-    model = load_model(uploaded_model)
+# URL for the model stored in GitHub (replace with your actual URL)
+model_url = "https://raw.githubusercontent.com/your-username/your-repository/main/model.pkl"
+
+if uploaded_image:
+    # Load the model from GitHub
+    model = load_model_from_url(model_url)
     
     # Read the image from the uploaded file
     image = np.asarray(bytearray(uploaded_image.read()), dtype=np.uint8)
