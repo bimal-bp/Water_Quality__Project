@@ -1,11 +1,11 @@
-aimport streamlit as st
+import streamlit as st
 import cv2
 import numpy as np
 import joblib
 import pandas as pd
 
 # Function to load the model from a local file
-adef load_model_from_file(file_path):
+def load_model_from_file(file_path):
     return joblib.load(file_path)
 
 # Function to process the image
