@@ -5,7 +5,7 @@ import joblib
 import pandas as pd
 
 # Function to load the model from a local file
-def load_model_from_file(file_path):
+adef load_model_from_file(file_path):
     return joblib.load(file_path)
 
 # Function to process the image
