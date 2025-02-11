@@ -5,11 +5,11 @@ import joblib
 import pandas as pd
 
 # Function to load the model from a local file
-def load_model_from_file(file_path):
+adef load_model_from_file(file_path):
     return joblib.load(file_path)
 
 # Function to process the image
-def process_image(image, model):
+adef process_image(image, model):
     # Convert the image to RGB and HSV
     image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
@@ -74,7 +74,7 @@ def process_image(image, model):
             turbidity, average_organic_carbon, potability_prediction[0])
 
 # Function to assess water quality
-def assess_water_quality(pH, hue, FUI, DO, hardness, turbidity, organic_carbon, potability):
+adef assess_water_quality(pH, hue, FUI, DO, hardness, turbidity, organic_carbon, potability):
     drinking_water = (6.5 <= pH <= 8.5 and DO >= 7 and turbidity <= 3)
     irrigation_water = (6.0 <= pH <= 8.5)
     bathing_water = (6.5 <= pH <= 8.5 and DO >= 5 and turbidity <= 3)
